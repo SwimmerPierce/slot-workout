@@ -1,12 +1,13 @@
 {
   "name": "slot-workout",
   "version": "1.0.0",
-  "description": "Interactive 4-reel slot machine workout app with custom exercises, intervals, and email/link sharing",
+  "description": "Interactive 4-roller slot machine workout app with custom exercises, intervals, and email/link sharing",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node test/workout.test.js"
   },
   "keywords": [
     "workout",
