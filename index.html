@@ -1,0 +1,480 @@
+<!--
+  @file index.html
+  @description Main user interface for the Slot Machine Workout web application.
+               Contains the 4-roller slot machine housing, side pull lever, reel viewports,
+               progress tracker, exercise manager modal, share/email modal, workout timer overlay,
+               and completion celebration modal.
+  @dependencies src/styles/main.css, src/main.js
+  @role Primary HTML structure and view layer.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slot Machine Workout | 4-Roller Fitness Casino</title>
+  <meta name="description" content="Customizable 4-roller slot machine workout app. Customize exercises, intervals, and sets, then share workout links via email." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,600;0,700;1,700&family=Inter:wght@400;500;600;700;800&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./src/styles/main.css" />
+</head>
+<body class="bg-casino">
+  <!-- Fullscreen Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Main App Shell -->
+  <div class="app-layout">
+    <!-- Top Global Header -->
+    <header class="app-header">
+      <div class="header-branding">
+        <span class="brand-icon">🎰</span>
+        <div class="brand-text">
+          <h1 class="brand-title">SLOT WORKOUT</h1>
+          <span class="brand-subtitle">4-ROLLER FITNESS CASINO</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btn-open-exercises" class="btn btn-secondary" title="Manage exercise list & target rolls">
+          <span class="icon">📝</span>
+          <span class="btn-label">Exercises (<span id="header-exercise-count">10</span>)</span>
+        </button>
+
+        <button id="btn-open-share" class="btn btn-accent" title="Share workout set via email or link">
+          <span class="icon">✉️</span>
+          <span class="btn-label">Share / Email</span>
+        </button>
+
+        <button id="btn-toggle-sound" class="btn btn-icon" title="Toggle Sound (Mute/Unmute)" aria-label="Toggle Sound">
+          <span id="sound-icon" class="icon">🔊</span>
+        </button>
+
+        <button id="btn-reset-session" class="btn btn-outline-danger" title="Reset current session progress">
+          <span class="icon">🔄</span>
+          <span class="btn-label">Reset</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Workout Progress Marquee Bar -->
+    <div class="marquee-panel">
+      <div class="marquee-content">
+        <div class="workout-title-container">
+          <span class="tag-live">ACTIVE SET</span>
+          <h2 id="current-workout-title" class="workout-title">Custom Slot Workout</h2>
+          <button id="btn-edit-title" class="btn-text-edit" title="Edit Workout Title">✏️</button>
+        </div>
+
+        <div class="progress-stats">
+          <div class="stat-badge">
+            <span class="stat-label">ROLL PROGRESS</span>
+            <span class="stat-value"><span id="stat-current-roll">0</span> / <span id="stat-target-rolls">10</span></span>
+          </div>
+          <div class="stat-badge stat-badge-remaining">
+            <span class="stat-label">REMAINING</span>
+            <span id="stat-remaining-rolls" class="stat-value">10</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linear Progress Bar -->
+      <div class="progress-track">
+        <div id="progress-bar-fill" class="progress-fill" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Main Arcade Cabinet Stage -->
+    <main class="cabinet-stage">
+      <div class="cabinet-chassis">
+        <!-- Cabinet Crown / Marquee -->
+        <div class="cabinet-crown">
+          <div class="bulb-row bulb-row-top">
+            <span class="chassis-bulb"></span>
+            <span class="chassis-bulb"></span>
+            <span class="chassis-bulb"></span>
+            <span class="chassis-bulb"></span>
+            <span class="chassis-bulb"></span>
+            <span class="chassis-bulb"></span>
+            <span class="chassis-bulb"></span>
+            <span class="chassis-bulb"></span>
+            <span class="chassis-bulb"></span>
+          </div>
+          <div class="crown-sign">
+            <span class="crown-glow-text">★ JACKPOT WORKOUT MACHINE ★</span>
+          </div>
+        </div>
+
+        <!-- Slot Viewport Frame containing 4 Reels and side Lever -->
+        <div class="slot-frame-wrapper">
+          <div class="slot-frame">
+            <!-- Glass glare overlay -->
+            <div class="glass-reflection"></div>
+            <!-- Horizontal Payline Bar -->
+            <div class="payline-laser"></div>
+
+            <!-- Roller 1: Exercises -->
+            <div class="reel-column">
+              <div class="reel-header">
+                <span class="reel-label-badge">REEL 1</span>
+                <span class="reel-label-title">EXERCISE</span>
+              </div>
+              <div class="reel-viewport" id="reel-exercise" data-reel="0">
+                <div class="reel-strip">
+                  <div class="reel-item active">
+                    <span class="reel-text exercise-text">Push-Ups</span>
+                  </div>
+                </div>
+                <div class="reel-shadow-top"></div>
+                <div class="reel-shadow-bottom"></div>
+              </div>
+            </div>
+
+            <!-- Roller 2: Work Time (30s to 90s, step 10s) -->
+            <div class="reel-column">
+              <div class="reel-header">
+                <span class="reel-label-badge">REEL 2</span>
+                <span class="reel-label-title">WORK TIME</span>
+              </div>
+              <div class="reel-viewport" id="reel-work" data-reel="1">
+                <div class="reel-strip">
+                  <div class="reel-item active">
+                    <span class="reel-number">40</span>
+                    <span class="reel-unit">SEC WORK</span>
+                  </div>
+                </div>
+                <div class="reel-shadow-top"></div>
+                <div class="reel-shadow-bottom"></div>
+              </div>
+            </div>
+
+            <!-- Roller 3: Rest Time (15s to 45s, step 5s) -->
+            <div class="reel-column">
+              <div class="reel-header">
+                <span class="reel-label-badge">REEL 3</span>
+                <span class="reel-label-title">REST TIME</span>
+              </div>
+              <div class="reel-viewport" id="reel-rest" data-reel="2">
+                <div class="reel-strip">
+                  <div class="reel-item active">
+                    <span class="reel-number">20</span>
+                    <span class="reel-unit">SEC REST</span>
+                  </div>
+                </div>
+                <div class="reel-shadow-top"></div>
+                <div class="reel-shadow-bottom"></div>
+              </div>
+            </div>
+
+            <!-- Roller 4: Sets (1 to 3) -->
+            <div class="reel-column">
+              <div class="reel-header">
+                <span class="reel-label-badge">REEL 4</span>
+                <span class="reel-label-title">SETS</span>
+              </div>
+              <div class="reel-viewport" id="reel-sets" data-reel="3">
+                <div class="reel-strip">
+                  <div class="reel-item active">
+                    <span class="reel-number">2</span>
+                    <span class="reel-unit">SETS</span>
+                  </div>
+                </div>
+                <div class="reel-shadow-top"></div>
+                <div class="reel-shadow-bottom"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Physical Slot Machine Lever on the right side -->
+          <div class="slot-lever-assembly" id="lever-assembly" title="Click or pull lever to spin!">
+            <div class="lever-mount">
+              <div class="lever-shaft-housing">
+                <div class="lever-shaft" id="lever-shaft">
+                  <div class="lever-ball" id="lever-ball"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cabinet Dashboard / Action Deck -->
+        <div class="cabinet-deck">
+          <div class="deck-led-screen">
+            <span class="led-label">STATUS</span>
+            <div id="deck-status-message" class="led-message">READY TO SPIN</div>
+          </div>
+
+          <button id="btn-spin" class="btn-spin-arcade" title="Spin all 4 reels! (Shortcut: Spacebar)">
+            <span class="btn-spin-reflection"></span>
+            <span class="btn-spin-text">SPIN!</span>
+            <span class="btn-spin-shortcut">[SPACE]</span>
+          </button>
+
+          <div class="deck-specs">
+            <div class="spec-pill" title="Work roller intervals">
+              <span class="spec-name">WORK:</span> 30s-90s (+10s)
+            </div>
+            <div class="spec-pill" title="Rest roller intervals">
+              <span class="spec-name">REST:</span> 15s-45s (+5s)
+            </div>
+            <div class="spec-pill" title="Sets roller intervals">
+              <span class="spec-name">SETS:</span> 1, 2, or 3
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Rolled Assignment Card -->
+      <section id="active-outcome-card" class="outcome-card hidden">
+        <div class="outcome-header">
+          <span class="outcome-badge">ROLLED CHALLENGE</span>
+          <span id="outcome-roll-tag" class="outcome-roll-tag">Roll #1</span>
+        </div>
+
+        <div class="outcome-details">
+          <div class="outcome-exercise" id="outcome-exercise-name">Push-Ups</div>
+          <div class="outcome-prescription">
+            <div class="presc-item">
+              <span class="presc-label">Work Interval</span>
+              <span class="presc-val" id="outcome-work-val">40s</span>
+            </div>
+            <div class="presc-divider">•</div>
+            <div class="presc-item">
+              <span class="presc-label">Rest Interval</span>
+              <span class="presc-val" id="outcome-rest-val">20s</span>
+            </div>
+            <div class="presc-divider">•</div>
+            <div class="presc-item">
+              <span class="presc-label">Sets</span>
+              <span class="presc-val" id="outcome-sets-val">2 Sets</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="outcome-actions">
+          <button id="btn-start-timer" class="btn btn-primary btn-large">
+            <span class="icon">⏱️</span>
+            <span>Start Guided Interval Timer</span>
+          </button>
+          <button id="btn-manual-done" class="btn btn-secondary">
+            <span class="icon">✓</span>
+            <span>Did It (Spin Next)</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Roll History Section -->
+      <section class="history-panel">
+        <div class="history-header">
+          <h3 class="history-title">Session Roll History (<span id="history-count">0</span>)</h3>
+          <span class="history-hint">Completed rolls this session</span>
+        </div>
+        <div id="history-list" class="history-list">
+          <div class="history-empty">No rolls completed yet. Pull the lever or hit SPIN to begin!</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 1: EXERCISE MANAGER & TARGET ROLLS CONFIG          -->
+  <!-- ======================================================== -->
+  <div id="modal-exercises" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-ex-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modal-ex-title" class="modal-title">🏋️ Exercise Roller Configuration</h3>
+        <button class="modal-close" id="btn-close-exercise-modal" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Target Rolls Setting -->
+        <div class="setting-group">
+          <label for="input-target-rolls" class="setting-label">
+            <span>Target Rolls to Complete Workout:</span>
+            <span class="setting-tip">The machine counts down toward this number</span>
+          </label>
+          <div class="target-input-row">
+            <input type="number" id="input-target-rolls" class="form-input" min="1" max="50" value="10" />
+            <span class="input-suffix">rolls required</span>
+          </div>
+        </div>
+
+        <!-- Routine Presets -->
+        <div class="setting-group">
+          <label class="setting-label">Quick Routine Presets:</label>
+          <div class="presets-row" id="presets-container">
+            <!-- Preset buttons populated via JS -->
+          </div>
+        </div>
+
+        <!-- Add Exercise Form -->
+        <div class="setting-group">
+          <label for="input-new-exercise" class="setting-label">Add Custom Exercise to Reel 1:</label>
+          <form id="form-add-exercise" class="add-exercise-form">
+            <input type="text" id="input-new-exercise" class="form-input" placeholder="e.g. Kettlebell Swings, Box Jumps..." maxlength="45" required />
+            <button type="submit" class="btn btn-primary">
+              <span class="icon">+</span> Add
+            </button>
+          </form>
+        </div>
+
+        <!-- Current Exercise Pool -->
+        <div class="setting-group">
+          <div class="pool-header">
+            <span class="setting-label">Current Reel 1 Exercises (<span id="modal-exercise-count">10</span>):</span>
+            <button id="btn-restore-defaults" class="btn-link" type="button">Reset to Defaults</button>
+          </div>
+          <ul id="exercise-items-list" class="exercise-items-list">
+            <!-- Populated via JS -->
+          </ul>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-save-exercises" class="btn btn-primary btn-full">Save & Update Slot Machine</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 2: SHARE & EMAIL WORKOUT LINK                      -->
+  <!-- ======================================================== -->
+  <div id="modal-share" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-share-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modal-share-title" class="modal-title">✉️ Share Workout Set</h3>
+        <button class="modal-close" id="btn-close-share-modal" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="share-lead">
+          Share your custom exercise set and target roll count with friends, clients, or workout partners.
+          Opening the link loads this exact machine configuration instantly!
+        </p>
+
+        <!-- Workout Summary Card -->
+        <div class="share-preview-card">
+          <div class="preview-line">
+            <span class="preview-key">Workout Name:</span>
+            <span id="share-preview-title" class="preview-val">Custom Slot Workout</span>
+          </div>
+          <div class="preview-line">
+            <span class="preview-key">Target Rolls:</span>
+            <span id="share-preview-target" class="preview-val">10 rounds</span>
+          </div>
+          <div class="preview-line">
+            <span class="preview-key">Exercises (<span id="share-preview-count">10</span>):</span>
+            <div id="share-preview-tags" class="preview-tags"></div>
+          </div>
+        </div>
+
+        <!-- 1-Click Email Share Button -->
+        <div class="share-action-section">
+          <label class="setting-label">Send via Email:</label>
+          <a id="btn-send-email" href="#" class="btn btn-accent btn-large btn-full btn-email">
+            <span class="icon">📧</span>
+            <span>Send Link via Email</span>
+          </a>
+          <span class="share-help-text">Opens your default email client with a pre-composed message and link.</span>
+        </div>
+
+        <!-- Copy Link Section -->
+        <div class="share-action-section">
+          <label for="share-url-input" class="setting-label">Or Copy Direct Link:</label>
+          <div class="copy-url-row">
+            <input type="text" id="share-url-input" class="form-input form-input-readonly" readonly />
+            <button id="btn-copy-share-url" class="btn btn-secondary">
+              <span class="icon">📋</span>
+              <span id="copy-btn-text">Copy</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-done-sharing" class="btn btn-secondary btn-full">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 3: GUIDED INTERVAL WORKOUT TIMER OVERLAY           -->
+  <!-- ======================================================== -->
+  <div id="timer-overlay" class="timer-overlay hidden" role="dialog" aria-modal="true">
+    <div class="timer-card">
+      <div class="timer-top-bar">
+        <div id="timer-set-badge" class="timer-set-badge">Set 1 of 2</div>
+        <button id="btn-timer-close" class="btn-icon-timer" title="Exit Timer" aria-label="Close timer">&times;</button>
+      </div>
+
+      <div id="timer-exercise-name" class="timer-exercise-name">Push-Ups</div>
+      <div id="timer-phase-title" class="phase-title phase-countdown">GET READY</div>
+
+      <div class="timer-clock-wrapper">
+        <div id="timer-countdown" class="timer-countdown">00:03</div>
+        <div class="timer-progress-track">
+          <div id="timer-progress-fill" class="timer-progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="timer-controls">
+        <button id="btn-timer-pause" class="btn btn-secondary btn-timer-ctl">
+          <span class="icon">⏸</span> Pause
+        </button>
+        <button id="btn-timer-skip" class="btn btn-secondary btn-timer-ctl">
+          <span class="icon">⏭</span> Skip
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 4: WORKOUT COMPLETE JACKPOT CELEBRATION            -->
+  <!-- ======================================================== -->
+  <div id="modal-celebration" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-dialog-celebration">
+      <div class="celebration-hero">
+        <div class="trophy-bounce">🏆</div>
+        <h2 class="celebration-title">JACKPOT! WORKOUT COMPLETE!</h2>
+        <p class="celebration-subtitle">You conquered all <span id="celeb-target-count">10</span> rolls of this machine!</p>
+      </div>
+
+      <div class="celebration-stats-grid">
+        <div class="celeb-stat-box">
+          <span class="celeb-stat-num" id="celeb-rolls-done">10</span>
+          <span class="celeb-stat-lbl">Rolls Finished</span>
+        </div>
+        <div class="celeb-stat-box">
+          <span class="celeb-stat-num" id="celeb-total-sets">22</span>
+          <span class="celeb-stat-lbl">Total Sets</span>
+        </div>
+        <div class="celeb-stat-box">
+          <span class="celeb-stat-num" id="celeb-total-work">14m</span>
+          <span class="celeb-stat-lbl">Total Work Time</span>
+        </div>
+        <div class="celeb-stat-box">
+          <span class="celeb-stat-num" id="celeb-total-rest">6m</span>
+          <span class="celeb-stat-lbl">Total Rest Time</span>
+        </div>
+      </div>
+
+      <div class="celebration-actions">
+        <button id="btn-celeb-restart" class="btn btn-primary btn-large btn-full">
+          <span class="icon">🔄</span> Start Fresh Session
+        </button>
+        <button id="btn-celeb-bonus" class="btn btn-secondary btn-full">
+          <span class="icon">⚡</span> Add 5 Bonus Rolls
+        </button>
+        <button id="btn-celeb-share" class="btn btn-accent btn-full">
+          <span class="icon">✉️</span> Share Routine With a Friend
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
